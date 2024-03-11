@@ -1,9 +1,4 @@
-export const refs = {
-  form: document.getElementById('search-form'),
-  resultContainer: document.getElementById('result-container'),
-};
-
-export function createMarkup(hits) {
+export function createMarkup(hits, resultContainer) {
   const markUp = hits
     .map(
       ({
@@ -16,7 +11,7 @@ export function createMarkup(hits) {
         downloads,
       }) => `<li class="gallery-item">
               <a href="${largeImageURL}">
-    <img class="gallery-image" src="${webformatURL}" alt="${tags}" width="370" heigth="300"></a>
+    <img class="gallery-image" src="${webformatURL}" alt="${tags}" width="370" height="300"></a>
     <div class="stats-block">
            <div class="stats">  
                <h2 class="title">Likes</h2>
@@ -33,12 +28,11 @@ export function createMarkup(hits) {
             <div class="stats">  
                <h2 class="title">Downloads</h2>
                <p class="amount">${downloads}</p>
-            </div>
-                
+            </div>                
      </div>
   </li>`
     )
     .join('');
-  refs.resultContainer.innerHTML = markUp;
-  return markUp;
+
+  resultContainer.insertAdjacentHTML('beforeend', markUp);
 }

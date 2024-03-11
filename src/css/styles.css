@@ -94,28 +94,11 @@ button {
 }
 
 .loader {
-  width: 24px;
-  height: 24px;
-  border: 5px solid black;
-  border-bottom-color: transparent;
-  border-radius: 50%;
-  display: none;
-  margin-left: 500px;
-  box-sizing: border-box;
-margin-bottom: 10px;
-  animation: rotation 1s linear infinite;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
-
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-
 
 .gallery-image {
   width: 370px;
@@ -145,10 +128,31 @@ margin-bottom: 10px;
   letter-spacing: 0.4px;
 }
 
-.amount {
+.load-btn {
+  cursor: pointer;
+  border-radius: 8px;
+  background-color: #4e75ff;
+  border: transparent;
+  color: #fff;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.5;
-  letter-spacing: 0.32px;
+  letter-spacing: 0.04em;
+  padding: 7px 15px;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.loader {
   text-align: center;
+  position: relative;
+  width: 120px;
+  height: 90px;
+  margin: 0 auto;
 }

@@ -1,52 +1,121 @@
+import axios from 'axios';
+
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-import { searchPicturesByParams } from './js/pixabay-api';
-import { createMarkup } from './js/render-functions';
-import { refs } from './js/render-functions';
+import { searchPicturesByParams } from './js/pixabay-api.js';
+import { createMarkup } from './js/render-functions.js';
 
-const loader = document.querySelector('.loader');
+const hiddenClass = 'is-hidden';
+const formToSearch = document.getElementById('search-form');
+const resultContainer = document.getElementById('result-container');
+const loadMoreBtn = document.querySelector('.load-btn');
+const preloader = document.querySelector('.loader');
+let pictureQuery = '';
+let page = 0;
+let per_page = 0;
 
 let lightbox = new SimpleLightbox('.gallery a', {
   captionsData: 'alt',
   captionDelay: 250,
 });
 
-refs.form.addEventListener('submit', handleSearch);
+formToSearch.addEventListener('submit', handleSearch);
 
-function handleSearch(event) {
+async function handleSearch(event) {
   event.preventDefault();
-  loader.style.display = 'inline-block';
+
+  page = 1;
+  per_page = 15;
   const form = event.currentTarget;
-  const picture = form.elements.picture.value;
+  pictureQuery = form.elements.picture.value.trim();
 
-  searchPicturesByParams(picture)
-    .then(data => {
-      const pictures = data.hits;
+  resultContainer.innerHTML = '';
 
-      if (pictures.length === 0) {
-        iziToast.error({
-          position: 'topRight',
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-        });
-      }
+  if (!pictureQuery) {
+    iziToast.error({
+      position: 'topRight',
+      message: 'Please, fill in the search field',
+    });
+    return;
+  }
 
-      createMarkup(pictures);
-      lightbox.refresh();
-    })
-    .catch(err => {
-      console.log(err);
+  try {
+    const data = await searchPicturesByParams(pictureQuery, page, per_page);
+    preloader.classList.remove(hiddenClass);
+    handleLoadMore();
+
+    if (data.hits.length === 0) {
       iziToast.error({
         position: 'topRight',
-        message: 'Failed to fetch images. Please try again later.',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
       });
-    })
-    .finally(() => {
+      preloader.classList.add(hiddenClass);
       form.reset();
-      loader.style.display = 'none';
-    });
+      return;
+    } else {
+      showLoadMoreBtn();
+      preloader.classList.add(hiddenClass);
+
+      createMarkup(data.hits, resultContainer);
+      lightbox.refresh();
+    }
+    if (data.hits.length > 15) {
+      showLoadMoreBtn();
+    }
+    scrollBy();
+    form.reset();
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function handleLoadMore() {
+  page += 1;
+
+  preloader.classList.remove(hiddenClass);
+  hideLoadMoreBtn();
+  try {
+    const data = await searchPicturesByParams(pictureQuery, page, per_page);
+    const totalPage = Math.ceil(data.totalHits / per_page);
+
+    if (page <= totalPage) {
+      preloader.classList.add(hiddenClass);
+      createMarkup(data.hits, resultContainer);
+      lightbox.refresh();
+      showLoadMoreBtn();
+      scrollBy();
+    } else {
+      preloader.classList.add(hiddenClass);
+      hideLoadMoreBtn();
+      iziToast.info({
+        position: 'bottomCenter',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function scrollBy() {
+  window.scrollBy({
+    top: 640,
+    behavior: 'smooth',
+  });
+}
+
+function showLoadMoreBtn() {
+  loadMoreBtn.classList.remove(hiddenClass);
+  loadMoreBtn.addEventListener('click', handleLoadMore);
+}
+
+function hideLoadMoreBtn() {
+  loadMoreBtn.classList.add(hiddenClass);
+  loadMoreBtn.removeEventListener('click', handleLoadMore);
 }
